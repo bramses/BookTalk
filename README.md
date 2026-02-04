@@ -141,4 +141,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Bram Adams**
 - Website: [bramadams.dev](https://www.bramadams.dev)
-- Support: support@bramadams.dev
+- Support: bram+support@bramadams.dev
