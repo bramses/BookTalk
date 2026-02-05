@@ -103,4 +103,12 @@ extension Book {
         archived.toggle()
         try save()
     }
+    
+    func annotationCount() throws -> Int {
+        try DatabaseManager.shared.dbQueue.read { db in
+            try Annotation
+                .filter(Annotation.Columns.bookId == id)
+                .fetchCount(db)
+        }
+    }
 }

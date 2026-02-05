@@ -83,46 +83,69 @@ struct ContentView: View {
 struct PTTIndicatorView: View {
     @ObservedObject var pttManager: PTTManager
     @State private var showingConfirmation = false
+    @State private var pulseAnimation = false
 
     var body: some View {
-        HStack(spacing: 12) {
-            // Status indicator
-            Circle()
-                .fill(pttManager.isTransmitting ? Color.red : Color.green)
-                .frame(width: 10, height: 10)
+        HStack(spacing: 14) {
+            // Status indicator with pulse animation
+            ZStack {
+                if pttManager.isTransmitting {
+                    Circle()
+                        .fill(Color.red.opacity(0.3))
+                        .frame(width: 20, height: 20)
+                        .scaleEffect(pulseAnimation ? 1.3 : 1.0)
+                        .opacity(pulseAnimation ? 0 : 1)
+                }
+                Circle()
+                    .fill(pttManager.isTransmitting ? Color.red : Color.green)
+                    .frame(width: 10, height: 10)
+            }
 
             // Book name
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text("PTT Active")
-                    .font(.caption2)
+                    .font(.caption2.weight(.medium))
                     .foregroundColor(.secondary)
                 Text(pttManager.currentBookTitle ?? "Unknown")
-                    .font(.caption.bold())
+                    .font(.subheadline.weight(.semibold))
                     .lineLimit(1)
             }
 
-            Spacer()
+            Spacer(minLength: 8)
 
             // Leave button
             Button {
                 showingConfirmation = true
             } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.secondary)
+                    .font(.title3)
+                    .foregroundColor(Color(.tertiaryLabel))
+                    .symbolRenderingMode(.hierarchical)
             }
             .accessibilityLabel("Leave PTT channel")
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 12)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Push to Talk active for \(pttManager.currentBookTitle ?? "book"). \(pttManager.isTransmitting ? "Currently recording" : "Ready")")
         .background(
-            RoundedRectangle(cornerRadius: 25)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(.regularMaterial)
+                .shadow(color: .black.opacity(0.12), radius: 12, y: 5)
+                .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
         )
         .padding(.horizontal, 20)
+        .transition(.scale.combined(with: .opacity))
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: pttManager.isJoined)
+        .onChange(of: pttManager.isTransmitting) { isTransmitting in
+            if isTransmitting {
+                withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: false)) {
+                    pulseAnimation = true
+                }
+            } else {
+                pulseAnimation = false
+            }
+        }
         .confirmationDialog(
             "Leave PTT Channel?",
             isPresented: $showingConfirmation,

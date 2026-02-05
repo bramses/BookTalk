@@ -16,32 +16,70 @@ struct SearchView: View {
         NavigationStack(path: $navigationPath) {
             VStack {
                 if searchText.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary)
-                        Text("Search Annotations")
-                            .font(.title2.bold())
-                        Text("Search through transcriptions and captions")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                    VStack(spacing: 20) {
+                        Spacer()
+                        
+                        ZStack {
+                            Circle()
+                                .fill(Color.teal.opacity(0.1))
+                                .frame(width: 120, height: 120)
+                            
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 50, weight: .light))
+                                .foregroundColor(.teal)
+                                .symbolRenderingMode(.hierarchical)
+                        }
+                        
+                        VStack(spacing: 8) {
+                            Text("Search Annotations")
+                                .font(.title2.weight(.semibold))
+                            Text("Search through transcriptions\nand captions")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.horizontal, 40)
+                        
+                        Spacer()
+                        Spacer()
                     }
-                    .frame(maxHeight: .infinity)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if isSearching {
-                    ProgressView("Searching...")
-                        .frame(maxHeight: .infinity)
-                } else if results.isEmpty {
                     VStack(spacing: 16) {
-                        Image(systemName: "doc.text.magnifyingglass")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary)
-                        Text("No Results")
-                            .font(.title2.bold())
-                        Text("Try a different search term")
+                        ProgressView()
+                        Text("Searching...")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
-                    .frame(maxHeight: .infinity)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if results.isEmpty {
+                    VStack(spacing: 20) {
+                        Spacer()
+                        
+                        ZStack {
+                            Circle()
+                                .fill(Color.orange.opacity(0.1))
+                                .frame(width: 120, height: 120)
+                            
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .font(.system(size: 50, weight: .light))
+                                .foregroundColor(.orange)
+                                .symbolRenderingMode(.hierarchical)
+                        }
+                        
+                        VStack(spacing: 8) {
+                            Text("No Results")
+                                .font(.title2.weight(.semibold))
+                            Text("Try a different search term")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 40)
+                        
+                        Spacer()
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
                         ForEach(results, id: \.annotation.id) { result in
@@ -53,9 +91,16 @@ struct SearchView: View {
                                     navigationPath.append(BookNavigation(book: result.book!, annotationId: result.annotation.id))
                                 } : nil
                             )
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(Color(.secondarySystemGroupedBackground))
+                                    .padding(.vertical, 4)
+                            )
                         }
                     }
                     .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
             .navigationTitle("Search")
@@ -107,20 +152,22 @@ struct SearchResultRow: View {
     var onGoToBook: (() -> Void)? = nil
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             // Book info
             if let book = result.book {
-                HStack {
+                HStack(spacing: 6) {
                     Image(systemName: "book.fill")
+                        .font(.caption2)
                         .foregroundColor(.blue)
                     Text(book.title)
-                        .font(.subheadline.bold())
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.primary)
                     Spacer()
                 }
             }
 
             // Annotation type indicator
-            HStack {
+            HStack(spacing: 6) {
                 Image(systemName: iconForType)
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -136,23 +183,25 @@ struct SearchResultRow: View {
             )
             .font(.body)
             .lineLimit(4)
+            .padding(.vertical, 4)
 
             // Action buttons
-            HStack {
+            HStack(spacing: 8) {
                 if result.annotation.type == .audio,
                    let audioURL = result.annotation.audioURL {
                     Button {
                         audioPlayer.togglePlayPause(url: audioURL, annotationId: result.annotation.id)
                     } label: {
-                        HStack {
+                        HStack(spacing: 6) {
                             Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                             Text(isPlaying ? "Pause" : "Play")
                             Text("(\(result.annotation.formattedDuration))")
                                 .foregroundColor(.secondary)
                         }
-                        .font(.subheadline)
+                        .font(.subheadline.weight(.medium))
                     }
                     .buttonStyle(.bordered)
+                    .tint(.blue)
                 }
 
                 if let onGoToBook = onGoToBook {
@@ -161,15 +210,17 @@ struct SearchResultRow: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.right.circle.fill")
-                            Text("Go to")
+                            Text("Go to Book")
                         }
-                        .font(.subheadline)
+                        .font(.subheadline.weight(.medium))
                     }
                     .buttonStyle(.bordered)
+                    .tint(.green)
                 }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
     }
 
     private var iconForType: String {
@@ -208,9 +259,9 @@ struct HighlightedText: View {
                 result = result + Text(text[currentIndex..<range.lowerBound])
             }
 
-            // Add highlighted text
+            // Add highlighted text with background effect
             result = result + Text(text[range])
-                .bold()
+                .fontWeight(.semibold)
                 .foregroundColor(.blue)
 
             currentIndex = range.upperBound

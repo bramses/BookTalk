@@ -21,7 +21,6 @@ struct BookDetailView: View {
     @State private var pendingVideoPath: String?
     @State private var pendingMediaIsVideo = false
     @State private var showingEditBook = false
-    @State private var showingPTTView = false
     @State private var showingTextNoteSheet = false
     @State private var transcribingAnnotationId: String?
     @State private var hasScrolledToAnnotation = false
@@ -48,12 +47,12 @@ struct BookDetailView: View {
         .sheet(isPresented: $showingCaptionSheet) { captionSheet }
         .sheet(isPresented: $showingEditBook) { EditBookSheet(book: $book) }
         .sheet(isPresented: $showingTextNoteSheet) { textNoteSheet }
-        .fullScreenCover(isPresented: $showingPTTView) { pttView }
         .confirmationDialog("Add Photo or Video", isPresented: $showingMediaSourceSheet) { mediaSourceButtons }
         .onChange(of: capturedImage) { handleCapturedImage($0) }
         .onChange(of: mediaPickerResult) { handleMediaResult($0) }
         .onChange(of: scenePhase) { handleScenePhase($0) }
         .onReceive(NotificationCenter.default.publisher(for: .pttRecordingCompleted)) { handlePTTNotification($0) }
+        .onReceive(NotificationCenter.default.publisher(for: .pttTranscriptionCompleted)) { handlePTTTranscriptionNotification($0) }
         .alert("Error", isPresented: $showingError) { Button("OK", role: .cancel) {} } message: { Text(errorMessage ?? "An error occurred") }
     }
 
@@ -62,7 +61,11 @@ struct BookDetailView: View {
         ToolbarItem(placement: .primaryAction) {
             Menu {
                 Button { showingEditBook = true } label: { Label("Edit Book", systemImage: "pencil") }
-                Button { showingPTTView = true } label: { Label("Push to Talk", systemImage: "antenna.radiowaves.left.and.right") }
+                Button { 
+                    PTTManager.shared.joinChannel(for: book)
+                } label: { 
+                    Label("Enable Lock Screen Recording", systemImage: "lock.open.iphone") 
+                }
             } label: {
                 Image(systemName: "ellipsis.circle")
             }
@@ -138,10 +141,6 @@ struct BookDetailView: View {
         TextNoteInputSheet(bookId: book.id) { annotations.insert($0, at: 0) }
     }
 
-    private var pttView: some View {
-        PTTSessionView(book: book, onRecordingComplete: { annotations.insert($0, at: 0) })
-    }
-
     @ViewBuilder
     private var mediaSourceButtons: some View {
         Button("Take Photo") { showingImagePicker = true }
@@ -180,7 +179,19 @@ struct BookDetailView: View {
 
     private func handlePTTNotification(_ notification: Notification) {
         if let annotation = notification.object as? Annotation, annotation.bookId == book.id {
-            if !annotations.contains(where: { $0.id == annotation.id }) { annotations.insert(annotation, at: 0) }
+            // Add new annotation if not already present
+            if !annotations.contains(where: { $0.id == annotation.id }) {
+                annotations.insert(annotation, at: 0)
+            }
+        }
+    }
+    
+    private func handlePTTTranscriptionNotification(_ notification: Notification) {
+        if let annotation = notification.object as? Annotation, annotation.bookId == book.id {
+            // Update the annotation in the list with the transcribed version
+            if let index = annotations.firstIndex(where: { $0.id == annotation.id }) {
+                annotations[index] = annotation
+            }
         }
     }
 

@@ -184,8 +184,9 @@ struct AddBookView: View {
         )
 
         do {
-            try book.save()
-            onSave(book)
+            var mutableBook = book
+            try mutableBook.save()
+            onSave(mutableBook)
             dismiss()
         } catch {
             print("Failed to save book: \(error)")

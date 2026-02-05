@@ -10,8 +10,6 @@ struct AnnotationRow: View {
     var onRetranscribe: (() -> Void)? = nil
 
     @State private var showingEditCaption = false
-    @State private var editedCaption = ""
-    @State private var editedPageNumber = ""
     @State private var showingFullScreenImage = false
 
     var body: some View {
@@ -35,8 +33,6 @@ struct AnnotationRow: View {
                 Spacer()
                 Menu {
                     Button {
-                        editedCaption = annotation.caption ?? annotation.transcription ?? ""
-                        editedPageNumber = annotation.pageNumber ?? ""
                         showingEditCaption = true
                     } label: {
                         Label("Edit", systemImage: "pencil")
@@ -82,11 +78,11 @@ struct AnnotationRow: View {
         .shadow(color: isHighlighted ? .blue.opacity(0.3) : .black.opacity(0.05), radius: isHighlighted ? 6 : 2, y: 1)
         .sheet(isPresented: $showingEditCaption) {
             EditCaptionSheet(
-                caption: $editedCaption,
-                pageNumber: $editedPageNumber,
-                onSave: {
-                    let page = editedPageNumber.isEmpty ? nil : editedPageNumber
-                    onUpdate(editedCaption, page)
+                caption: annotation.caption ?? annotation.transcription ?? "",
+                pageNumber: annotation.pageNumber ?? "",
+                onSave: { newCaption, newPageNumber in
+                    let page = newPageNumber.isEmpty ? nil : newPageNumber
+                    onUpdate(newCaption, page)
                 }
             )
         }
@@ -201,9 +197,15 @@ struct AnnotationRow: View {
 
 struct EditCaptionSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @Binding var caption: String
-    @Binding var pageNumber: String
-    var onSave: () -> Void
+    @State private var caption: String
+    @State private var pageNumber: String
+    let onSave: (String, String) -> Void
+
+    init(caption: String, pageNumber: String, onSave: @escaping (String, String) -> Void) {
+        self._caption = State(initialValue: caption)
+        self._pageNumber = State(initialValue: pageNumber)
+        self.onSave = onSave
+    }
 
     var body: some View {
         NavigationStack {
@@ -232,7 +234,7 @@ struct EditCaptionSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        onSave()
+                        onSave(caption, pageNumber)
                         dismiss()
                     }
                 }

@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct BookCoverView: View {
     let book: Book

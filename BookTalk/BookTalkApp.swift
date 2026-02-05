@@ -11,6 +11,11 @@ struct BookTalkApp: App {
 
         // Reindex annotations in Spotlight (runs in background)
         SpotlightService.shared.reindexAllAnnotationsBackground()
+        
+        // Initialize PTT Manager for lock screen recording access
+        Task { @MainActor in
+            await PTTManager.shared.initialize()
+        }
     }
 
     var body: some Scene {

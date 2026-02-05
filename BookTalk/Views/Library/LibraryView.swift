@@ -1,5 +1,7 @@
 import SwiftUI
 
+import SwiftUI
+
 struct LibraryView: View {
     @State private var books: [Book] = []
     @State private var showingAddBook = false
@@ -31,37 +33,16 @@ struct LibraryView: View {
         NavigationStack {
             ScrollView {
                 if books.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "books.vertical")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary)
-                        Text("No Books Yet")
-                            .font(.title2.bold())
-                        Text("Tap + to add your first book")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 100)
+                    emptyLibraryState
                 } else if filteredBooks.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary)
-                        Text("No Results")
-                            .font(.title2.bold())
-                        Text("No books match \"\(searchText)\"")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 100)
+                    emptySearchState
                 } else {
                     LazyVGrid(columns: columns, spacing: 20) {
                         ForEach(filteredBooks) { book in
                             NavigationLink(value: book) {
                                 BookCoverView(book: book)
                             }
+                            .buttonStyle(.plain)
                             .contextMenu {
                                 Button {
                                     archiveBook(book)
@@ -186,6 +167,70 @@ struct LibraryView: View {
             showingError = true
         }
     }
+    
+    // MARK: - Empty States
+    
+    private var emptyLibraryState: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            
+            ZStack {
+                Circle()
+                    .fill(Color.blue.opacity(0.1))
+                    .frame(width: 120, height: 120)
+                
+                Image(systemName: "books.vertical")
+                    .font(.system(size: 50, weight: .light))
+                    .foregroundColor(.blue)
+                    .symbolRenderingMode(.hierarchical)
+            }
+            
+            VStack(spacing: 8) {
+                Text("No Books Yet")
+                    .font(.title2.weight(.semibold))
+                Text("Tap the + button to add your first book")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 40)
+            
+            Spacer()
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+    
+    private var emptySearchState: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            
+            ZStack {
+                Circle()
+                    .fill(Color.orange.opacity(0.1))
+                    .frame(width: 120, height: 120)
+                
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 50, weight: .light))
+                    .foregroundColor(.orange)
+                    .symbolRenderingMode(.hierarchical)
+            }
+            
+            VStack(spacing: 8) {
+                Text("No Results")
+                    .font(.title2.weight(.semibold))
+                Text("No books match \"\(searchText)\"")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 40)
+            
+            Spacer()
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
 }
 
 struct ArchivedBooksView: View {
@@ -202,34 +247,47 @@ struct ArchivedBooksView: View {
         NavigationStack {
             List {
                 if archivedBooks.isEmpty {
-                    Text("No archived books")
-                        .foregroundColor(.secondary)
+                    VStack(spacing: 16) {
+                        Image(systemName: "archivebox")
+                            .font(.system(size: 50, weight: .light))
+                            .foregroundColor(.secondary)
+                            .symbolRenderingMode(.hierarchical)
+                        Text("No Archived Books")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 60)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
                 } else {
                     ForEach(archivedBooks) { book in
                         Button {
                             selectedBook = book
                         } label: {
-                            HStack {
+                            HStack(spacing: 12) {
                                 // Book cover thumbnail
                                 if let coverURL = book.coverImageURL,
                                    let uiImage = UIImage(contentsOfFile: coverURL.path) {
                                     Image(uiImage: uiImage)
                                         .resizable()
                                         .aspectRatio(contentMode: .fill)
-                                        .frame(width: 40, height: 60)
-                                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                                        .frame(width: 44, height: 64)
+                                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                        .shadow(color: .black.opacity(0.15), radius: 3, y: 2)
                                 } else {
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(Color.gray.opacity(0.2))
-                                        .frame(width: 40, height: 60)
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .fill(Color.gray.opacity(0.15))
+                                        .frame(width: 44, height: 64)
                                         .overlay {
                                             Image(systemName: "book.closed.fill")
                                                 .font(.caption)
                                                 .foregroundColor(.gray)
+                                                .symbolRenderingMode(.hierarchical)
                                         }
                                 }
 
-                                VStack(alignment: .leading) {
+                                VStack(alignment: .leading, spacing: 4) {
                                     Text(book.title)
                                         .font(.headline)
                                         .foregroundColor(.primary)
@@ -243,8 +301,8 @@ struct ArchivedBooksView: View {
                                 Spacer()
 
                                 Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundColor(Color(.tertiaryLabel))
                             }
                         }
                         .swipeActions(edge: .leading) {
@@ -428,15 +486,24 @@ struct ArchivedBookDetailView: View {
     }
 
     private var emptyStateView: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "text.bubble")
-                .font(.system(size: 40))
-                .foregroundColor(.secondary)
-            Text("No annotations")
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(Color.gray.opacity(0.1))
+                    .frame(width: 100, height: 100)
+                
+                Image(systemName: "text.bubble")
+                    .font(.system(size: 40, weight: .light))
+                    .foregroundColor(.secondary)
+                    .symbolRenderingMode(.hierarchical)
+            }
+            
+            Text("No Annotations")
                 .font(.headline)
                 .foregroundColor(.secondary)
         }
         .padding(.top, 60)
+        .frame(maxWidth: .infinity)
     }
 
     private func loadAnnotations() {

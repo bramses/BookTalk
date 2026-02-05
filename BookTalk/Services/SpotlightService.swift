@@ -15,6 +15,44 @@ class SpotlightService: ObservableObject {
 
     private init() {}
 
+    // MARK: - Index Book
+
+    func indexBook(_ book: Book) {
+        logger.info("Indexing book \(book.id): \(book.title)")
+
+        let attributeSet = CSSearchableItemAttributeSet(contentType: .text)
+        attributeSet.title = book.title
+        
+        var keywords: [String] = [book.title]
+        if let author = book.author {
+            attributeSet.contentDescription = "by \(author)"
+            keywords.append(author)
+        }
+        
+        attributeSet.keywords = keywords
+        
+        // Set thumbnail if available
+        if let coverURL = book.coverImageURL {
+            attributeSet.thumbnailURL = coverURL
+        }
+        
+        // Create searchable item
+        let item = CSSearchableItem(
+            uniqueIdentifier: "book_\(book.id)",
+            domainIdentifier: "dev.bramadams.BookTalk.books",
+            attributeSet: attributeSet
+        )
+        
+        // Index the item
+        CSSearchableIndex.default().indexSearchableItems([item]) { [weak self] error in
+            if let error = error {
+                self?.logger.error("Failed to index book \(book.id): \(error.localizedDescription)")
+            } else {
+                self?.logger.info("Successfully indexed book \(book.id)")
+            }
+        }
+    }
+
     // MARK: - Index Annotation
 
     func indexAnnotation(_ annotation: Annotation, book: Book?) {
@@ -85,6 +123,17 @@ class SpotlightService: ObservableObject {
     }
 
     // MARK: - Remove from Index
+
+    func removeBook(_ bookId: String) {
+        logger.info("Removing book \(bookId) from Spotlight")
+        CSSearchableIndex.default().deleteSearchableItems(withIdentifiers: ["book_\(bookId)"]) { [weak self] error in
+            if let error = error {
+                self?.logger.error("Failed to remove book \(bookId): \(error.localizedDescription)")
+            } else {
+                self?.logger.info("Successfully removed book \(bookId)")
+            }
+        }
+    }
 
     func removeAnnotation(_ annotationId: String) {
         logger.info("Removing annotation \(annotationId) from Spotlight")

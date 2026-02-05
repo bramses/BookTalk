@@ -21,6 +21,7 @@ class PTTManager: NSObject, ObservableObject {
     static let shared = PTTManager()
 
     @Published var isTransmitting = false
+    @Published var isJoined = false
     @Published var currentBookId: String?
     @Published var currentBookTitle: String?
 
@@ -105,14 +106,26 @@ class PTTManager: NSObject, ObservableObject {
     func leaveChannel() {
         #if !targetEnvironment(simulator)
         guard let channelManager = channelManager, let channelUUID = activeChannelUUID else {
+            isJoined = false
             return
         }
 
         channelManager.leaveChannel(channelUUID: channelUUID)
         pttLogger.info("Leaving PTT channel")
         #else
+        isJoined = false
         pttLogger.info("Simulator: Leave channel called")
         #endif
+    }
+    
+    /// Force leave the current PTT channel (convenience method)
+    func forceLeaveChannel() {
+        leaveChannel()
+        isJoined = false
+        #if !targetEnvironment(simulator)
+        activeChannelUUID = nil
+        #endif
+        pttLogger.info("Force left PTT channel")
     }
 
     // MARK: - Recording (happens locally, PTT just triggers it)
@@ -131,11 +144,12 @@ class PTTManager: NSObject, ObservableObject {
         let filename = "\(bookId)_\(UUID().uuidString).m4a"
         let url = audioDir.appendingPathComponent(filename)
 
-        // Configure audio session for recording
+        // Configure audio session for recording with PTT
+        // Use voiceChat mode for better integration with PushToTalk framework
         let session = AVAudioSession.sharedInstance()
         do {
-            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
-            try session.setActive(true)
+            try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP])
+            try session.setActive(true, options: [])
         } catch {
             pttLogger.error("Failed to configure audio session: \(error.localizedDescription)")
             return
@@ -169,6 +183,7 @@ class PTTManager: NSObject, ObservableObject {
               let url = currentRecordingURL,
               let bookId = currentBookId,
               let startTime = recordingStartTime else {
+            pttLogger.warning("Stop recording called but no active recording found")
             return
         }
 
@@ -176,10 +191,17 @@ class PTTManager: NSObject, ObservableObject {
         let duration = Date().timeIntervalSince(startTime)
         pttLogger.info("Recording stopped, duration: \(duration)s")
 
-        // Clean up
+        // Clean up recorder references
         audioRecorder = nil
         currentRecordingURL = nil
         recordingStartTime = nil
+        
+        // Deactivate audio session
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            pttLogger.error("Failed to deactivate audio session: \(error.localizedDescription)")
+        }
 
         // Only save if > 0.5 seconds
         guard duration > 0.5 else {
@@ -208,6 +230,8 @@ class PTTManager: NSObject, ObservableObject {
             }
         } catch {
             pttLogger.error("Failed to save annotation: \(error.localizedDescription)")
+            // Clean up the audio file if we couldn't save the annotation
+            try? FileManager.default.removeItem(at: url)
         }
     }
 
@@ -308,6 +332,7 @@ extension PTTManager: PTChannelManagerDelegate {
         pttLogger.info("Joined PTT channel, reason: \(String(describing: reason))")
         Task { @MainActor in
             self.activeChannelUUID = channelUUID
+            self.isJoined = true
         }
     }
 
@@ -315,6 +340,7 @@ extension PTTManager: PTChannelManagerDelegate {
         pttLogger.info("Left PTT channel, reason: \(String(describing: reason))")
         Task { @MainActor in
             self.activeChannelUUID = nil
+            self.isJoined = false
         }
     }
 
@@ -377,17 +403,12 @@ extension PTTManager: PTChannelRestorationDelegate {
             }
         }
         
-        // Create channel descriptor
-        var image: UIImage
-        if let bookId = restoredBookId,
-           let book = try? Book.find(id: bookId),
-           let coverURL = book.coverImageURL,
-           let coverImage = UIImage(contentsOfFile: coverURL.path) {
-            image = self.resizeImage(coverImage, to: CGSize(width: 60, height: 60))
-        } else {
-            let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .medium)
-            image = UIImage(systemName: "book.fill", withConfiguration: config) ?? UIImage()
-        }
+        // Create channel descriptor with default image
+        // We can't call async database methods from a nonisolated synchronous context
+        // so we use the default book icon. The cover image will be updated when the
+        // channel state is fully restored on the main actor.
+        let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .medium)
+        let image = UIImage(systemName: "book.fill", withConfiguration: config) ?? UIImage()
         
         return PTChannelDescriptor(name: restoredBookTitle ?? "BookTalk", image: image)
     }

@@ -13,7 +13,7 @@ struct FeedView: View {
     private let pageSize = 20
 
     struct AnnotationWithBook: Identifiable {
-        let annotation: Annotation
+        var annotation: Annotation  // Changed from let to var
         let book: Book?
         var id: String { annotation.id }
     }
@@ -29,6 +29,7 @@ struct FeedView: View {
                 if isLoading {
                     ProgressView()
                         .padding(.top, 100)
+                        .frame(maxWidth: .infinity)
                 } else if annotations.isEmpty {
                     emptyState
                 } else {
@@ -42,6 +43,7 @@ struct FeedView: View {
                                     navigationPath.append(BookNavigation(book: item.book!, annotationId: item.annotation.id))
                                 } : nil
                             )
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
                             .onAppear {
                                 // Load more when reaching near the end
                                 if item.id == annotations.last?.id && hasMoreContent && !isLoadingMore {
@@ -51,15 +53,24 @@ struct FeedView: View {
                         }
 
                         if isLoadingMore {
-                            ProgressView()
-                                .padding()
+                            HStack {
+                                ProgressView()
+                                    .padding()
+                            }
+                            .frame(maxWidth: .infinity)
                         }
 
                         if !hasMoreContent && !annotations.isEmpty {
-                            Text("You've seen all annotations")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .padding()
+                            VStack(spacing: 8) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.green)
+                                Text("You're all caught up!")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 24)
+                            .frame(maxWidth: .infinity)
                         }
                     }
                     .padding()
@@ -72,6 +83,18 @@ struct FeedView: View {
             .refreshable {
                 await loadAnnotations()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .pttRecordingCompleted)) { _ in
+                Task { await loadAnnotations() }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .pttTranscriptionCompleted)) { notification in
+                // Update the specific annotation with transcription
+                if let annotation = notification.object as? Annotation,
+                   let index = annotations.firstIndex(where: { $0.annotation.id == annotation.id }) {
+                    var updated = annotations[index]
+                    updated.annotation = annotation
+                    annotations[index] = updated
+                }
+            }
             .task {
                 if annotations.isEmpty {
                     await loadAnnotations()
@@ -81,18 +104,34 @@ struct FeedView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "text.bubble")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
-            Text("No Annotations Yet")
-                .font(.title2.bold())
-            Text("Your annotations from all books will appear here")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+        VStack(spacing: 20) {
+            Spacer()
+            
+            ZStack {
+                Circle()
+                    .fill(Color.purple.opacity(0.1))
+                    .frame(width: 120, height: 120)
+                
+                Image(systemName: "text.bubble")
+                    .font(.system(size: 50, weight: .light))
+                    .foregroundColor(.purple)
+                    .symbolRenderingMode(.hierarchical)
+            }
+            
+            VStack(spacing: 8) {
+                Text("No Annotations Yet")
+                    .font(.title2.weight(.semibold))
+                Text("Your annotations from all books\nwill appear here")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 40)
+            
+            Spacer()
+            Spacer()
         }
-        .padding(.top, 100)
+        .frame(maxWidth: .infinity)
     }
 
     private func loadAnnotations() async {
@@ -165,31 +204,33 @@ struct FeedAnnotationRow: View {
     var onGoToBook: (() -> Void)? = nil
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             // Book info header
             if let book = book {
-                HStack {
+                HStack(spacing: 10) {
                     if let coverURL = book.coverImageURL,
                        let uiImage = UIImage(contentsOfFile: coverURL.path) {
                         Image(uiImage: uiImage)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 32, height: 48)
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                            .frame(width: 36, height: 52)
+                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            .shadow(color: .black.opacity(0.15), radius: 3, y: 2)
                     } else {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(Color.blue.opacity(0.2))
-                            .frame(width: 32, height: 48)
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(Color.blue.opacity(0.15))
+                            .frame(width: 36, height: 52)
                             .overlay {
                                 Image(systemName: "book.closed.fill")
                                     .font(.caption)
                                     .foregroundColor(.blue)
+                                    .symbolRenderingMode(.hierarchical)
                             }
                     }
 
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 3) {
                         Text(book.title)
-                            .font(.subheadline.bold())
+                            .font(.subheadline.weight(.semibold))
                             .lineLimit(1)
                         if let author = book.author {
                             Text(author)
@@ -201,6 +242,7 @@ struct FeedAnnotationRow: View {
 
                     Spacer()
                 }
+                .padding(.bottom, 4)
             }
 
             Divider()
@@ -217,10 +259,16 @@ struct FeedAnnotationRow: View {
                 textContent
             }
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Color(.separator).opacity(0.3), lineWidth: 0.5)
+        )
+        .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
     }
 
     @ViewBuilder
