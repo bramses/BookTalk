@@ -10,7 +10,7 @@ struct Book: Identifiable, Codable, Hashable {
     var archived: Bool
     var createdAt: Date
     var updatedAt: Date
-
+    
     init(
         id: String = UUID().uuidString,
         title: String,
@@ -30,7 +30,7 @@ struct Book: Identifiable, Codable, Hashable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
-
+    
     var coverImageURL: URL? {
         guard let path = coverImagePath else { return nil }
         return DatabaseManager.coversDirectory.appendingPathComponent(path)
@@ -40,6 +40,15 @@ struct Book: Identifiable, Codable, Hashable {
 // MARK: - GRDB Record
 extension Book: FetchableRecord, PersistableRecord {
     static var databaseTableName: String { "books" }
+    
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let title = Column(CodingKeys.title)
+        static let author = Column(CodingKeys.author)
+        static let archived = Column(CodingKeys.archived)
+        static let createdAt = Column(CodingKeys.createdAt)
+        static let updatedAt = Column(CodingKeys.updatedAt)
+    }
 }
 
 // MARK: - Database Operations
@@ -48,51 +57,50 @@ extension Book {
         try DatabaseManager.shared.dbQueue.read { db in
             try Book
                 .filter(Column("archived") == archived)
-                .order(Column("updatedAt").desc)
+                .order(Column("createdAt").desc)
                 .fetchAll(db)
         }
     }
-
+    
     static func find(id: String) throws -> Book? {
         try DatabaseManager.shared.dbQueue.read { db in
             try Book.fetchOne(db, key: id)
         }
     }
-
+    
     @discardableResult
-    func save() throws -> Book {
-        var book = self
-        book.updatedAt = Date()
-        try DatabaseManager.shared.dbQueue.write { db in
-            try book.save(db)
-        }
-        return book
-    }
-
-    func delete() throws {
-        try DatabaseManager.shared.dbQueue.write { db in
-            _ = try Book.deleteOne(db, key: id)
-        }
-
-        // Delete cover image if exists
-        if let url = coverImageURL {
-            try? FileManager.default.removeItem(at: url)
-        }
-    }
-
-    mutating func toggleArchived() throws {
-        archived.toggle()
+    mutating func save() throws -> Book {
         updatedAt = Date()
         try DatabaseManager.shared.dbQueue.write { db in
             try self.save(db)
         }
+        // Index in Spotlight
+        SpotlightService.shared.indexBook(self)
+        return self
     }
-
-    func annotationCount() throws -> Int {
-        try DatabaseManager.shared.dbQueue.read { db in
-            try Annotation
-                .filter(Column("bookId") == id)
-                .fetchCount(db)
+    
+    func delete() throws {
+        // Delete associated annotations
+        let annotations = try Annotation.forBook(id)
+        for annotation in annotations {
+            try annotation.delete()
         }
+        
+        // Delete cover image
+        if let url = coverImageURL {
+            try? FileManager.default.removeItem(at: url)
+        }
+        
+        // Remove from Spotlight
+        SpotlightService.shared.removeBook(id)
+        
+        try DatabaseManager.shared.dbQueue.write { db in
+            _ = try Book.deleteOne(db, key: id)
+        }
+    }
+    
+    mutating func toggleArchived() throws {
+        archived.toggle()
+        try save()
     }
 }
