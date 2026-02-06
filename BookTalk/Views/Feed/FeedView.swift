@@ -9,6 +9,7 @@ struct FeedView: View {
     @State private var hasMoreContent = true
     @State private var currentSeed: UInt64 = 0
     @State private var navigationPath = NavigationPath()
+    @State private var activeVideoId: String?
 
     private let pageSize = 20
 
@@ -39,11 +40,11 @@ struct FeedView: View {
                                 annotation: item.annotation,
                                 book: item.book,
                                 audioPlayer: audioPlayer,
+                                activeVideoId: $activeVideoId,
                                 onGoToBook: item.book != nil ? {
                                     navigationPath.append(BookNavigation(book: item.book!, annotationId: item.annotation.id))
                                 } : nil
                             )
-                            .transition(.opacity.combined(with: .move(edge: .bottom)))
                             .onAppear {
                                 // Load more when reaching near the end
                                 if item.id == annotations.last?.id && hasMoreContent && !isLoadingMore {
@@ -201,21 +202,24 @@ struct FeedAnnotationRow: View {
     let annotation: Annotation
     let book: Book?
     @ObservedObject var audioPlayer: AudioPlayer
+    @Binding var activeVideoId: String?
     var onGoToBook: (() -> Void)? = nil
+
+    @State private var coverImage: UIImage?
+    @State private var annotationImage: UIImage?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Book info header
             if let book = book {
                 HStack(spacing: 10) {
-                    if let coverURL = book.coverImageURL,
-                       let uiImage = UIImage(contentsOfFile: coverURL.path) {
-                        Image(uiImage: uiImage)
+                    if let coverImage {
+                        Image(uiImage: coverImage)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: 36, height: 52)
                             .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                            .shadow(color: .black.opacity(0.15), radius: 3, y: 2)
+                            .shadow(color: .black.opacity(0.12), radius: 2, y: 1)
                     } else {
                         RoundedRectangle(cornerRadius: 6, style: .continuous)
                             .fill(Color.blue.opacity(0.15))
@@ -268,7 +272,8 @@ struct FeedAnnotationRow: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .strokeBorder(Color(.separator).opacity(0.3), lineWidth: 0.5)
         )
-        .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
+        .shadow(color: .black.opacity(0.03), radius: 2, y: 1)
+        .onAppear { loadImagesIfNeeded() }
     }
 
     @ViewBuilder
@@ -315,9 +320,8 @@ struct FeedAnnotationRow: View {
     @ViewBuilder
     private var imageContent: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let imageURL = annotation.imageURL,
-               let uiImage = UIImage(contentsOfFile: imageURL.path) {
-                Image(uiImage: uiImage)
+            if let annotationImage {
+                Image(uiImage: annotationImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(maxHeight: 200)
@@ -350,9 +354,25 @@ struct FeedAnnotationRow: View {
     private var videoContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let videoURL = annotation.videoURL {
-                VideoThumbnailPlayer(url: videoURL)
-                    .frame(height: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                if activeVideoId == annotation.id {
+                    VideoThumbnailPlayer(url: videoURL)
+                        .frame(height: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                } else {
+                    Button {
+                        activeVideoId = annotation.id
+                    } label: {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.black.opacity(0.08))
+                                .frame(height: 200)
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: 48))
+                                .foregroundColor(.white.opacity(0.9))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
             }
 
             HStack {
@@ -402,5 +422,19 @@ struct FeedAnnotationRow: View {
 
     private var isPlaying: Bool {
         audioPlayer.isPlaying && audioPlayer.currentAnnotationId == annotation.id
+    }
+
+    private func loadImagesIfNeeded() {
+        if coverImage == nil, let coverURL = book?.coverImageURL {
+            FeedImageLoader.shared.loadImage(path: coverURL.path) { image in
+                coverImage = image
+            }
+        }
+
+        if annotationImage == nil, let imageURL = annotation.imageURL {
+            FeedImageLoader.shared.loadImage(path: imageURL.path) { image in
+                annotationImage = image
+            }
+        }
     }
 }

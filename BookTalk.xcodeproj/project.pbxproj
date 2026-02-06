@@ -18,6 +18,7 @@
 		25AAC0B12F354CA4002AD9F3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 25AAC0B02F354CA4002AD9F3 /* SwiftUI.framework */; };
 		25AAC0C02F354CA7002AD9F3 /* BookTalkWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 25AAC0AD2F354CA3002AD9F3 /* BookTalkWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		25AAC0C82F354EDD002AD9F3 /* QuickRecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25AAC0C72F354EDD002AD9F3 /* QuickRecordView.swift */; };
+		25AAC1B32F364C31002AD9F3 /* FeedImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25AAC1B22F364C31002AD9F3 /* FeedImageLoader.swift */; };
 		6572E1D697F1A95493B19317 /* SpotlightService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B4E82F5567F5BFEAB37BAAE /* SpotlightService.swift */; };
 		B1000001232D0001 /* BookTalkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000002232D0001 /* BookTalkApp.swift */; };
 		B1000003232D0001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000004232D0001 /* ContentView.swift */; };
@@ -77,6 +78,7 @@
 		25AAC0AE2F354CA4002AD9F3 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		25AAC0B02F354CA4002AD9F3 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		25AAC0C72F354EDD002AD9F3 /* QuickRecordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickRecordView.swift; sourceTree = "<group>"; };
+		25AAC1B22F364C31002AD9F3 /* FeedImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedImageLoader.swift; sourceTree = "<group>"; };
 		39AEAE8ED2835D36A080B5F4 /* AboutView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		5B4E82F5567F5BFEAB37BAAE /* SpotlightService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SpotlightService.swift; sourceTree = "<group>"; };
 		B1000000232D0001 /* BookTalk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BookTalk.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -160,6 +162,7 @@
 			isa = PBXGroup;
 			children = (
 				B1000026232D0001 /* FeedView.swift */,
+				25AAC1B22F364C31002AD9F3 /* FeedImageLoader.swift */,
 			);
 			path = Feed;
 			sourceTree = "<group>";
@@ -404,6 +407,7 @@
 				B100000D232D0001 /* AudioRecorder.swift in Sources */,
 				B100000F232D0001 /* AudioPlayer.swift in Sources */,
 				B1000013232D0001 /* TranscriptionService.swift in Sources */,
+				25AAC1B32F364C31002AD9F3 /* FeedImageLoader.swift in Sources */,
 				25AAC0992F35260B002AD9F3 /* Book.swift in Sources */,
 				B1000015232D0001 /* BarcodeScannerService.swift in Sources */,
 				B1000017232D0001 /* BookLookupService.swift in Sources */,
