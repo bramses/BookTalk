@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,6 +11,13 @@
 		252A11052F35222900AA72A7 /* PTTManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252A11042F35222900AA72A7 /* PTTManager.swift */; };
 		25AAC0992F35260B002AD9F3 /* Book.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25AAC0982F35260B002AD9F3 /* Book.swift */; };
 		25AAC0A22F352B48002AD9F3 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 25AAC0A12F352B48002AD9F3 /* GRDB */; };
+		25AAC0A42F3536B8002AD9F3 /* RecordingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25AAC0A32F3536B8002AD9F3 /* RecordingManager.swift */; };
+		25AAC0A62F3536C0002AD9F3 /* RecordingControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25AAC0A52F3536C0002AD9F3 /* RecordingControl.swift */; };
+		25AAC0A82F3536C4002AD9F3 /* BookTalkWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25AAC0A72F3536C4002AD9F3 /* BookTalkWidgets.swift */; };
+		25AAC0AF2F354CA4002AD9F3 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 25AAC0AE2F354CA4002AD9F3 /* WidgetKit.framework */; };
+		25AAC0B12F354CA4002AD9F3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 25AAC0B02F354CA4002AD9F3 /* SwiftUI.framework */; };
+		25AAC0C02F354CA7002AD9F3 /* BookTalkWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 25AAC0AD2F354CA3002AD9F3 /* BookTalkWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		25AAC0C82F354EDD002AD9F3 /* QuickRecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25AAC0C72F354EDD002AD9F3 /* QuickRecordView.swift */; };
 		6572E1D697F1A95493B19317 /* SpotlightService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B4E82F5567F5BFEAB37BAAE /* SpotlightService.swift */; };
 		B1000001232D0001 /* BookTalkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000002232D0001 /* BookTalkApp.swift */; };
 		B1000003232D0001 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000004232D0001 /* ContentView.swift */; };
@@ -33,12 +40,43 @@
 		B1000029232D0001 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100002A232D0001 /* ImagePicker.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		25AAC0BE2F354CA7002AD9F3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B1FFFFF7232D0001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 25AAC0AC2F354CA3002AD9F3;
+			remoteInfo = BookTalkWidgetsExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		25AAC0C52F354CA7002AD9F3 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				25AAC0C02F354CA7002AD9F3 /* BookTalkWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		252A11042F35222900AA72A7 /* PTTManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTTManager.swift; sourceTree = "<group>"; };
 		25AAC0982F35260B002AD9F3 /* Book.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Book.swift; sourceTree = "<group>"; };
 		25AAC09A2F35261A002AD9F3 /* BookCoverView 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BookCoverView 2.swift"; sourceTree = "<group>"; };
 		25AAC09C2F35262D002AD9F3 /* AddBookView 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AddBookView 2.swift"; sourceTree = "<group>"; };
 		25AAC09E2F352644002AD9F3 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		25AAC0A32F3536B8002AD9F3 /* RecordingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingManager.swift; sourceTree = "<group>"; };
+		25AAC0A52F3536C0002AD9F3 /* RecordingControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingControl.swift; sourceTree = "<group>"; };
+		25AAC0A72F3536C4002AD9F3 /* BookTalkWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookTalkWidgets.swift; sourceTree = "<group>"; };
+		25AAC0AD2F354CA3002AD9F3 /* BookTalkWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BookTalkWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		25AAC0AE2F354CA4002AD9F3 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		25AAC0B02F354CA4002AD9F3 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		25AAC0C72F354EDD002AD9F3 /* QuickRecordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickRecordView.swift; sourceTree = "<group>"; };
 		39AEAE8ED2835D36A080B5F4 /* AboutView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		5B4E82F5567F5BFEAB37BAAE /* SpotlightService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SpotlightService.swift; sourceTree = "<group>"; };
 		B1000000232D0001 /* BookTalk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BookTalk.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -66,7 +104,30 @@
 		B100002E232D0001 /* BookTalk.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BookTalk.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		25AAC0C12F354CA7002AD9F3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 25AAC0AC2F354CA3002AD9F3 /* BookTalkWidgetsExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		25AAC0B22F354CA4002AD9F3 /* BookTalkWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (25AAC0C12F354CA7002AD9F3 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = BookTalkWidgets; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		25AAC0AA2F354CA3002AD9F3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				25AAC0B12F354CA4002AD9F3 /* SwiftUI.framework in Frameworks */,
+				25AAC0AF2F354CA4002AD9F3 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B1FFFFFE232D0001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -81,8 +142,18 @@
 		25AAC0A02F352A85002AD9F3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				25AAC0AE2F354CA4002AD9F3 /* WidgetKit.framework */,
+				25AAC0B02F354CA4002AD9F3 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		25AAC0C62F354EBA002AD9F3 /* Recording */ = {
+			isa = PBXGroup;
+			children = (
+				25AAC0C72F354EDD002AD9F3 /* QuickRecordView.swift */,
+			);
+			path = Recording;
 			sourceTree = "<group>";
 		};
 		B1000030232D0001 /* Feed */ = {
@@ -98,6 +169,9 @@
 			children = (
 				B1000028232D0001 /* SearchView.swift */,
 				252A11042F35222900AA72A7 /* PTTManager.swift */,
+				25AAC0A32F3536B8002AD9F3 /* RecordingManager.swift */,
+				25AAC0A52F3536C0002AD9F3 /* RecordingControl.swift */,
+				25AAC0A72F3536C4002AD9F3 /* BookTalkWidgets.swift */,
 			);
 			path = Search;
 			sourceTree = "<group>";
@@ -114,6 +188,7 @@
 			isa = PBXGroup;
 			children = (
 				B1FFFFFA232D0001 /* BookTalk */,
+				25AAC0B22F354CA4002AD9F3 /* BookTalkWidgets */,
 				25AAC0A02F352A85002AD9F3 /* Frameworks */,
 				B1FFFFF9232D0001 /* Products */,
 			);
@@ -123,6 +198,7 @@
 			isa = PBXGroup;
 			children = (
 				B1000000232D0001 /* BookTalk.app */,
+				25AAC0AD2F354CA3002AD9F3 /* BookTalkWidgetsExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -174,6 +250,7 @@
 				B1000031232D0001 /* Search */,
 				B1000032232D0001 /* Common */,
 				39AEAE8ED2835D36A080B5F4 /* AboutView.swift */,
+				25AAC0C62F354EBA002AD9F3 /* Recording */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -205,6 +282,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		25AAC0AC2F354CA3002AD9F3 /* BookTalkWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 25AAC0C22F354CA7002AD9F3 /* Build configuration list for PBXNativeTarget "BookTalkWidgetsExtension" */;
+			buildPhases = (
+				25AAC0A92F354CA3002AD9F3 /* Sources */,
+				25AAC0AA2F354CA3002AD9F3 /* Frameworks */,
+				25AAC0AB2F354CA3002AD9F3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				25AAC0B22F354CA4002AD9F3 /* BookTalkWidgets */,
+			);
+			name = BookTalkWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = BookTalkWidgetsExtension;
+			productReference = 25AAC0AD2F354CA3002AD9F3 /* BookTalkWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		B1FFFFFF232D0001 /* BookTalk */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B1000033232D0001 /* Build configuration list for PBXNativeTarget "BookTalk" */;
@@ -212,10 +311,12 @@
 				B1FFFFFD232D0003 /* Sources */,
 				B1FFFFFE232D0001 /* Frameworks */,
 				B1FFFFFF232D0003 /* Resources */,
+				25AAC0C52F354CA7002AD9F3 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				25AAC0BF2F354CA7002AD9F3 /* PBXTargetDependency */,
 			);
 			name = BookTalk;
 			packageProductDependencies = (
@@ -232,9 +333,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1500;
+				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
+					25AAC0AC2F354CA3002AD9F3 = {
+						CreatedOnToolsVersion = 26.3;
+					};
 					B1FFFFFF232D0001 = {
 						CreatedOnToolsVersion = 15.0;
 					};
@@ -257,11 +361,19 @@
 			projectRoot = "";
 			targets = (
 				B1FFFFFF232D0001 /* BookTalk */,
+				25AAC0AC2F354CA3002AD9F3 /* BookTalkWidgetsExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		25AAC0AB2F354CA3002AD9F3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B1FFFFFF232D0003 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -273,6 +385,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		25AAC0A92F354CA3002AD9F3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B1FFFFFD232D0003 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -281,6 +400,7 @@
 				B1000003232D0001 /* ContentView.swift in Sources */,
 				B1000007232D0001 /* DatabaseManager.swift in Sources */,
 				B100000B232D0001 /* Annotation.swift in Sources */,
+				25AAC0A42F3536B8002AD9F3 /* RecordingManager.swift in Sources */,
 				B100000D232D0001 /* AudioRecorder.swift in Sources */,
 				B100000F232D0001 /* AudioPlayer.swift in Sources */,
 				B1000013232D0001 /* TranscriptionService.swift in Sources */,
@@ -297,14 +417,87 @@
 				252A11052F35222900AA72A7 /* PTTManager.swift in Sources */,
 				B1000027232D0001 /* SearchView.swift in Sources */,
 				B1000029232D0001 /* ImagePicker.swift in Sources */,
+				25AAC0C82F354EDD002AD9F3 /* QuickRecordView.swift in Sources */,
+				25AAC0A82F3536C4002AD9F3 /* BookTalkWidgets.swift in Sources */,
 				20708A0B9576853A402D483A /* AboutView.swift in Sources */,
 				6572E1D697F1A95493B19317 /* SpotlightService.swift in Sources */,
+				25AAC0A62F3536C0002AD9F3 /* RecordingControl.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		25AAC0BF2F354CA7002AD9F3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 25AAC0AC2F354CA3002AD9F3 /* BookTalkWidgetsExtension */;
+			targetProxy = 25AAC0BE2F354CA7002AD9F3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		25AAC0C32F354CA7002AD9F3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MN8C3856QD;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BookTalkWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = BookTalkWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bram.booktalk.BookTalkWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		25AAC0C42F354CA7002AD9F3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = MN8C3856QD;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = BookTalkWidgets/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = BookTalkWidgets;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bram.booktalk.BookTalkWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		B1000034232D0001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -333,7 +526,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bram.booktalk;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -370,7 +563,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bram.booktalk;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -501,6 +694,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		25AAC0C22F354CA7002AD9F3 /* Build configuration list for PBXNativeTarget "BookTalkWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				25AAC0C32F354CA7002AD9F3 /* Debug */,
+				25AAC0C42F354CA7002AD9F3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		B1000033232D0001 /* Build configuration list for PBXNativeTarget "BookTalk" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

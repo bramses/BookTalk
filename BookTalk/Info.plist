@@ -18,5 +18,16 @@
 	<string>BookTalk needs photo library access to add images to your annotations.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>BookTalk uses speech recognition to transcribe your audio annotations locally.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>dev.bramadams.BookTalk</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>booktalk</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

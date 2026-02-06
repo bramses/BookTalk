@@ -61,11 +61,6 @@ struct BookDetailView: View {
         ToolbarItem(placement: .primaryAction) {
             Menu {
                 Button { showingEditBook = true } label: { Label("Edit Book", systemImage: "pencil") }
-                Button { 
-                    PTTManager.shared.joinChannel(for: book)
-                } label: { 
-                    Label("Enable Lock Screen Recording", systemImage: "lock.open.iphone") 
-                }
             } label: {
                 Image(systemName: "ellipsis.circle")
             }

@@ -6,56 +6,110 @@ class AudioRecorder: NSObject, ObservableObject {
     @Published var isRecording = false
     @Published var currentDuration: TimeInterval = 0
 
-    private var audioRecorder: AVAudioRecorder?
+    private var audioEngine: AVAudioEngine?
+    private var tapNode: AVAudioNode?
+    private var audioFile: AVAudioFile?
+    private var recordingURL: URL?
     private var recordingStartTime: Date?
     private var timer: Timer?
     private var currentFilename: String?
     private var currentBookId: String?
 
     func startRecording(forBook bookId: String) -> String? {
+        startRecordingInternal(bookId: bookId)
+    }
+
+    func startRecording() -> String? {
+        startRecordingInternal(bookId: nil)
+    }
+
+    private func startRecordingInternal(bookId: String?) -> String? {
         let audioSession = AVAudioSession.sharedInstance()
         do {
-            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
+            try audioSession.setCategory(.playAndRecord, mode: .spokenAudio, options: [.defaultToSpeaker, .allowBluetooth])
             try audioSession.setActive(true)
         } catch {
             print("Failed to set up audio session: \(error)")
             return nil
         }
 
-        let filename = "\(bookId)_\(UUID().uuidString).m4a"
-        let url = DatabaseManager.audioDirectory.appendingPathComponent(filename)
+        let audioDir = DatabaseManager.audioDirectory
+        if !FileManager.default.fileExists(atPath: audioDir.path) {
+            try? FileManager.default.createDirectory(at: audioDir, withIntermediateDirectories: true)
+        }
 
-        let settings: [String: Any] = [
-            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: 44100,
-            AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-        ]
+        let filename = makeFilename(bookId: bookId)
+        let url = audioDir.appendingPathComponent(filename)
+
+        let engine = AVAudioEngine()
+        let input = engine.inputNode
+        let inputFormat = input.inputFormat(forBus: 0)
+
+        let eq = AVAudioUnitEQ(numberOfBands: 2)
+        if eq.bands.count >= 2 {
+            let highPass = eq.bands[0]
+            highPass.filterType = .highPass
+            highPass.frequency = 80
+            highPass.bandwidth = 0.5
+            highPass.gain = 0
+            highPass.bypass = false
+
+            let presence = eq.bands[1]
+            presence.filterType = .highShelf
+            presence.frequency = 4000
+            presence.bandwidth = 0.7
+            presence.gain = 3
+            presence.bypass = false
+        }
+
+        engine.attach(eq)
+        engine.connect(input, to: eq, format: inputFormat)
+        engine.connect(eq, to: engine.mainMixerNode, format: inputFormat)
+        engine.mainMixerNode.outputVolume = 0
 
         do {
-            audioRecorder = try AVAudioRecorder(url: url, settings: settings)
-            audioRecorder?.delegate = self
-            audioRecorder?.prepareToRecord()
-
-            if audioRecorder?.record() == true {
-                isRecording = true
-                recordingStartTime = Date()
-                currentFilename = filename
-                currentBookId = bookId
-                currentDuration = 0
-                startTimer()
-                return filename
+            let file = try AVAudioFile(forWriting: url, settings: inputFormat.settings)
+            let recordingFile = file
+            eq.installTap(onBus: 0, bufferSize: 1024, format: inputFormat) { buffer, _ in
+                do {
+                    try recordingFile.write(from: buffer)
+                } catch {
+                    print("Failed to write audio buffer: \(error)")
+                }
             }
+
+            engine.prepare()
+            try engine.start()
+
+            audioEngine = engine
+            tapNode = eq
+            audioFile = file
+            recordingURL = url
+            isRecording = true
+            recordingStartTime = Date()
+            currentFilename = filename
+            currentBookId = bookId
+            currentDuration = 0
+            startTimer()
+            return filename
         } catch {
             print("Failed to start recording: \(error)")
         }
         return nil
     }
 
-    func stopRecording() -> (filename: String, duration: TimeInterval)? {
-        guard isRecording, let recorder = audioRecorder else { return nil }
+    private func makeFilename(bookId: String?) -> String {
+        if let bookId {
+            return "\(bookId)_\(UUID().uuidString).m4a"
+        }
+        return "quick_\(UUID().uuidString).m4a"
+    }
 
-        recorder.stop()
+    func stopRecording() -> (filename: String, duration: TimeInterval)? {
+        guard isRecording, audioEngine != nil else { return nil }
+
+        tapNode?.removeTap(onBus: 0)
+        audioEngine?.stop()
         stopTimer()
         isRecording = false
 
@@ -65,7 +119,10 @@ class AudioRecorder: NSObject, ObservableObject {
         currentFilename = nil
         currentBookId = nil
         recordingStartTime = nil
-        audioRecorder = nil
+        audioEngine = nil
+        tapNode = nil
+        audioFile = nil
+        recordingURL = nil
 
         try? AVAudioSession.sharedInstance().setActive(false)
 
@@ -87,13 +144,5 @@ class AudioRecorder: NSObject, ObservableObject {
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
-    }
-}
-
-extension AudioRecorder: AVAudioRecorderDelegate {
-    nonisolated func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
-        if !flag {
-            print("Recording finished unsuccessfully")
-        }
     }
 }

@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var spotlightBook: Book?
     @State private var spotlightAnnotationId: String?
     @State private var showSpotlightBook = false
+    @State private var showQuickRecord = false
 
     var body: some View {
         ZStack {
@@ -62,6 +63,13 @@ struct ContentView: View {
                         }
                 }
             }
+        }
+        .fullScreenCover(isPresented: $showQuickRecord) {
+            QuickRecordView()
+        }
+        .onOpenURL { url in
+            guard url.scheme == "booktalk", url.host == "record" else { return }
+            showQuickRecord = true
         }
     }
 

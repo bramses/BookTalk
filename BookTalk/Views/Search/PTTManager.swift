@@ -1,5 +1,5 @@
 import Foundation
-#if !targetEnvironment(simulator)
+#if canImport(PushToTalk)
 import PushToTalk
 #endif
 import AVFoundation
@@ -25,7 +25,7 @@ class PTTManager: NSObject, ObservableObject {
     @Published var currentBookId: String?
     @Published var currentBookTitle: String?
 
-    #if !targetEnvironment(simulator)
+    #if canImport(PushToTalk)
     private var channelManager: PTChannelManager?
     private var activeChannelUUID: UUID?
     #endif
@@ -43,7 +43,7 @@ class PTTManager: NSObject, ObservableObject {
 
     override init() {
         super.init()
-        #if !targetEnvironment(simulator)
+        #if canImport(PushToTalk)
         // Restore book context from UserDefaults for channel restoration
         currentBookId = UserDefaults.standard.string(forKey: bookIdKey)
         currentBookTitle = UserDefaults.standard.string(forKey: bookTitleKey)
@@ -54,13 +54,29 @@ class PTTManager: NSObject, ObservableObject {
     }
 
     func initialize() async {
-        #if !targetEnvironment(simulator)
+        // Configure audio session for recording at initialization
         do {
-            channelManager = try await PTChannelManager.channelManager(delegate: self, restorationDelegate: self)
-            pttLogger.info("PTT Channel Manager initialized")
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+            print("✅ Audio session configured for recording at initialization")
         } catch {
-            pttLogger.error("Failed to create PTT channel manager: \(error.localizedDescription)")
+            print("❌ Failed to configure audio session: \(error.localizedDescription)")
         }
+        
+        #if canImport(PushToTalk)
+        do {
+            // Request channel manager with both delegates
+            channelManager = try await PTChannelManager.channelManager(
+                delegate: self,
+                restorationDelegate: self
+            )
+            pttLogger.info("✅ PTT Channel Manager initialized successfully")
+            print("⚠️ NOTE: PTT provides UI only - audio recording is handled separately")
+        } catch {
+            pttLogger.error("❌ Failed to create PTT channel manager: \(error.localizedDescription)")
+        }
+        #else
+        pttLogger.info("⚠️ PushToTalk not available (simulator or unsupported device)")
         #endif
     }
 
@@ -69,7 +85,7 @@ class PTTManager: NSObject, ObservableObject {
         currentBookId = book.id
         currentBookTitle = book.title
         
-        #if !targetEnvironment(simulator)
+        #if canImport(PushToTalk)
         // Persist for channel restoration
         UserDefaults.standard.set(book.id, forKey: bookIdKey)
         UserDefaults.standard.set(book.title, forKey: bookTitleKey)
@@ -80,9 +96,9 @@ class PTTManager: NSObject, ObservableObject {
 
     /// Join a PTT channel for the given book (enables lock screen recording)
     func joinChannel(for book: Book) {
-        #if !targetEnvironment(simulator)
+        #if canImport(PushToTalk)
         guard let channelManager = channelManager else {
-            pttLogger.warning("Channel manager not initialized")
+            pttLogger.warning("⚠️ Channel manager not initialized")
             return
         }
 
@@ -94,27 +110,27 @@ class PTTManager: NSObject, ObservableObject {
 
         activeChannelUUID = channelUUID
         channelManager.requestJoinChannel(channelUUID: channelUUID, descriptor: descriptor)
-        pttLogger.info("Requesting to join PTT channel for: \(book.title)")
+        pttLogger.info("📡 Requesting to join PTT channel for: \(book.title)")
         #else
         // Simulator fallback - just set the book
         setActiveBook(book)
-        pttLogger.info("Simulator: Join channel called for \(book.title)")
+        pttLogger.info("🔄 Simulator: Join channel called for \(book.title)")
         #endif
     }
 
     /// Leave the current PTT channel (disables lock screen recording)
     func leaveChannel() {
-        #if !targetEnvironment(simulator)
+        #if canImport(PushToTalk)
         guard let channelManager = channelManager, let channelUUID = activeChannelUUID else {
             isJoined = false
             return
         }
 
         channelManager.leaveChannel(channelUUID: channelUUID)
-        pttLogger.info("Leaving PTT channel")
+        pttLogger.info("👋 Leaving PTT channel")
         #else
         isJoined = false
-        pttLogger.info("Simulator: Leave channel called")
+        pttLogger.info("🔄 Simulator: Leave channel called")
         #endif
     }
     
@@ -122,19 +138,25 @@ class PTTManager: NSObject, ObservableObject {
     func forceLeaveChannel() {
         leaveChannel()
         isJoined = false
-        #if !targetEnvironment(simulator)
+        #if canImport(PushToTalk)
         activeChannelUUID = nil
         #endif
-        pttLogger.info("Force left PTT channel")
+        pttLogger.info("🚫 Force left PTT channel")
     }
 
     // MARK: - Recording (happens locally, PTT just triggers it)
 
     private func startRecording() {
+        pttLogger.info("🔴 startRecording() called")
+        print("🔴 PTT: startRecording() called")
+        
         guard let bookId = currentBookId else {
-            pttLogger.error("Cannot record: no active book set")
+            pttLogger.error("❌ Cannot record: no active book set")
+            print("❌ PTT: Cannot record - no active book set")
             return
         }
+        
+        print("📚 PTT: Recording for book ID: \(bookId)")
 
         let audioDir = DatabaseManager.audioDirectory
         if !FileManager.default.fileExists(atPath: audioDir.path) {
@@ -143,18 +165,25 @@ class PTTManager: NSObject, ObservableObject {
 
         let filename = "\(bookId)_\(UUID().uuidString).m4a"
         let url = audioDir.appendingPathComponent(filename)
+        
+        print("📁 PTT: Will record to: \(url.path)")
 
-        // Configure audio session for recording with PTT
-        // Use voiceChat mode for better integration with PushToTalk framework
-        let session = AVAudioSession.sharedInstance()
+        // Check audio session status
+        let audioSession = AVAudioSession.sharedInstance()
+        print("🔍 PTT: Audio session category: \(audioSession.category.rawValue)")
+        print("🔍 PTT: Audio session mode: \(audioSession.mode.rawValue)")
+        
+        // Activate audio session if needed
         do {
-            try session.setCategory(.playAndRecord, mode: .voiceChat, options: [.defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP])
-            try session.setActive(true, options: [])
+            if !audioSession.isOtherAudioPlaying {
+                try audioSession.setActive(true)
+                print("✅ PTT: Activated audio session")
+            }
         } catch {
-            pttLogger.error("Failed to configure audio session: \(error.localizedDescription)")
-            return
+            print("⚠️ PTT: Could not activate audio session: \(error.localizedDescription)")
+            // Continue anyway - the session might already be active
         }
-
+        
         let settings: [String: Any] = [
             AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
             AVSampleRateKey: 44100.0,
@@ -164,49 +193,66 @@ class PTTManager: NSObject, ObservableObject {
 
         do {
             audioRecorder = try AVAudioRecorder(url: url, settings: settings)
-            audioRecorder?.prepareToRecord()
+            guard let recorder = audioRecorder else {
+                print("❌ PTT: audioRecorder is nil after creation")
+                return
+            }
             
-            if audioRecorder?.record() == true {
+            recorder.prepareToRecord()
+            
+            pttLogger.info("🎤 AVAudioRecorder created and prepared")
+            print("🎤 PTT: AVAudioRecorder created and prepared")
+            print("🔍 PTT: Recorder URL: \(recorder.url)")
+            
+            let didStart = recorder.record()
+            print("🔍 PTT: recorder.record() returned: \(didStart)")
+            
+            if didStart {
+                print("🔍 PTT: Checking recorder.isRecording: \(recorder.isRecording)")
                 currentRecordingURL = url
                 recordingStartTime = Date()
-                pttLogger.info("✅ Recording started: \(filename)")
+                pttLogger.info("✅ Recording started successfully: \(filename)")
+                print("✅ PTT: Recording started successfully: \(filename)")
             } else {
-                pttLogger.error("Failed to start AVAudioRecorder")
+                pttLogger.error("❌ Failed to start AVAudioRecorder.record()")
+                print("❌ PTT: Failed to start AVAudioRecorder.record()")
+                audioRecorder = nil
             }
         } catch {
-            pttLogger.error("Failed to create AVAudioRecorder: \(error.localizedDescription)")
+            pttLogger.error("❌ Failed to create AVAudioRecorder: \(error.localizedDescription)")
+            print("❌ PTT: Failed to create AVAudioRecorder: \(error.localizedDescription)")
+            audioRecorder = nil
         }
     }
 
     private func stopRecording() {
+        pttLogger.info("⏹️ stopRecording() called")
+        
         guard let recorder = audioRecorder,
               let url = currentRecordingURL,
               let bookId = currentBookId,
               let startTime = recordingStartTime else {
-            pttLogger.warning("Stop recording called but no active recording found")
+            pttLogger.warning("⚠️ Stop recording called but no active recording found")
             return
         }
 
         recorder.stop()
         let duration = Date().timeIntervalSince(startTime)
-        pttLogger.info("Recording stopped, duration: \(duration)s")
+        pttLogger.info("⏱️ Recording stopped, duration: \(duration)s")
 
         // Clean up recorder references
         audioRecorder = nil
         currentRecordingURL = nil
         recordingStartTime = nil
         
-        // Deactivate audio session
-        do {
-            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-        } catch {
-            pttLogger.error("Failed to deactivate audio session: \(error.localizedDescription)")
-        }
+        // IMPORTANT: DO NOT deactivate the audio session!
+        // PTT framework manages the audio session lifecycle.
+        // It will call didDeactivate when appropriate.
 
         // Only save if > 0.5 seconds
         guard duration > 0.5 else {
             try? FileManager.default.removeItem(at: url)
-            pttLogger.info("Recording too short, deleted")
+            pttLogger.info("🗑️ Recording too short (\(duration)s), deleted")
             return
         }
 
@@ -219,7 +265,7 @@ class PTTManager: NSObject, ObservableObject {
 
         do {
             try annotation.save()
-            pttLogger.info("Saved annotation: \(annotation.id)")
+            pttLogger.info("💾 Saved annotation: \(annotation.id)")
             
             onRecordingComplete?(annotation)
             NotificationCenter.default.post(name: .pttRecordingCompleted, object: annotation)
@@ -229,7 +275,7 @@ class PTTManager: NSObject, ObservableObject {
                 await self.transcribeRecording(annotation: annotation, audioURL: url)
             }
         } catch {
-            pttLogger.error("Failed to save annotation: \(error.localizedDescription)")
+            pttLogger.error("❌ Failed to save annotation: \(error.localizedDescription)")
             // Clean up the audio file if we couldn't save the annotation
             try? FileManager.default.removeItem(at: url)
         }
@@ -258,7 +304,7 @@ class PTTManager: NSObject, ObservableObject {
 
     // MARK: - Helpers
 
-    #if !targetEnvironment(simulator)
+    #if canImport(PushToTalk)
     private func deterministicUUID(for bookId: String) -> UUID {
         let data = bookId.data(using: .utf8)!
         var bytes = [UInt8](repeating: 0, count: 16)
@@ -317,19 +363,19 @@ class PTTManager: NSObject, ObservableObject {
     #endif
 }
 
-#if !targetEnvironment(simulator)
+#if canImport(PushToTalk)
 // MARK: - PTChannelManagerDelegate
 extension PTTManager: PTChannelManagerDelegate {
     nonisolated func channelManager(_ channelManager: PTChannelManager, didActivate audioSession: AVAudioSession) {
-        pttLogger.info("PTT audio session activated")
+        pttLogger.info("🎤 PTT audio session activated")
     }
 
     nonisolated func channelManager(_ channelManager: PTChannelManager, didDeactivate audioSession: AVAudioSession) {
-        pttLogger.info("PTT audio session deactivated")
+        pttLogger.info("🔇 PTT audio session deactivated")
     }
 
     nonisolated func channelManager(_ channelManager: PTChannelManager, didJoinChannel channelUUID: UUID, reason: PTChannelJoinReason) {
-        pttLogger.info("Joined PTT channel, reason: \(String(describing: reason))")
+        pttLogger.info("✅ Joined PTT channel, reason: \(String(describing: reason))")
         Task { @MainActor in
             self.activeChannelUUID = channelUUID
             self.isJoined = true
@@ -337,7 +383,7 @@ extension PTTManager: PTChannelManagerDelegate {
     }
 
     nonisolated func channelManager(_ channelManager: PTChannelManager, didLeaveChannel channelUUID: UUID, reason: PTChannelLeaveReason) {
-        pttLogger.info("Left PTT channel, reason: \(String(describing: reason))")
+        pttLogger.info("👋 Left PTT channel, reason: \(String(describing: reason))")
         Task { @MainActor in
             self.activeChannelUUID = nil
             self.isJoined = false
@@ -345,50 +391,61 @@ extension PTTManager: PTChannelManagerDelegate {
     }
 
     nonisolated func channelManager(_ channelManager: PTChannelManager, channelUUID: UUID, didBeginTransmittingFrom source: PTChannelTransmitRequestSource) {
-        pttLogger.info("BEGIN transmitting from source: \(String(describing: source))")
+        pttLogger.info("🎙️ BEGIN transmitting from source: \(String(describing: source))")
+        print("🎙️ PTT: BEGIN transmitting from source: \(String(describing: source))")
         Task { @MainActor in
+            print("🎙️ PTT: Calling startRecording on MainActor")
             self.isTransmitting = true
             self.startRecording()
         }
     }
 
     nonisolated func channelManager(_ channelManager: PTChannelManager, channelUUID: UUID, didEndTransmittingFrom source: PTChannelTransmitRequestSource) {
-        pttLogger.info("END transmitting from source: \(String(describing: source))")
+        pttLogger.info("⏹️ END transmitting from source: \(String(describing: source))")
+        print("⏹️ PTT: END transmitting from source: \(String(describing: source))")
         Task { @MainActor in
+            print("⏹️ PTT: Calling stopRecording on MainActor")
             self.isTransmitting = false
             self.stopRecording()
         }
     }
 
     nonisolated func channelManager(_ channelManager: PTChannelManager, receivedEphemeralPushToken pushToken: Data) {
-        pttLogger.debug("Received PTT push token")
+        pttLogger.debug("📲 Received PTT push token: \(pushToken.count) bytes")
     }
 
     nonisolated func incomingPushResult(channelManager: PTChannelManager, channelUUID: UUID, pushPayload: [String : Any]) -> PTPushResult {
+        pttLogger.info("📨 Incoming push for channel: \(channelUUID)")
         return .leaveChannel
     }
 
     nonisolated func channelManager(_ channelManager: PTChannelManager, failedToJoinChannel channelUUID: UUID, error: Error) {
-        pttLogger.error("Failed to join channel: \(error.localizedDescription)")
+        pttLogger.error("❌ Failed to join channel: \(error.localizedDescription)")
+        Task { @MainActor in
+            self.isJoined = false
+        }
     }
 
     nonisolated func channelManager(_ channelManager: PTChannelManager, failedToLeaveChannel channelUUID: UUID, error: Error) {
-        pttLogger.error("Failed to leave channel: \(error.localizedDescription)")
+        pttLogger.error("❌ Failed to leave channel: \(error.localizedDescription)")
     }
 
     nonisolated func channelManager(_ channelManager: PTChannelManager, failedToBeginTransmittingInChannel channelUUID: UUID, error: Error) {
-        pttLogger.error("Failed to begin transmitting: \(error.localizedDescription)")
+        pttLogger.error("❌ Failed to begin transmitting: \(error.localizedDescription)")
+        Task { @MainActor in
+            self.isTransmitting = false
+        }
     }
 
     nonisolated func channelManager(_ channelManager: PTChannelManager, failedToStopTransmittingInChannel channelUUID: UUID, error: Error) {
-        pttLogger.error("Failed to stop transmitting: \(error.localizedDescription)")
+        pttLogger.error("❌ Failed to stop transmitting: \(error.localizedDescription)")
     }
 }
 
 // MARK: - PTChannelRestorationDelegate
 extension PTTManager: PTChannelRestorationDelegate {
     nonisolated func channelDescriptor(restoredChannelUUID channelUUID: UUID) -> PTChannelDescriptor {
-        pttLogger.info("Restoring PTT channel: \(channelUUID)")
+        pttLogger.info("🔄 Restoring PTT channel: \(channelUUID)")
         
         let restoredBookId = UserDefaults.standard.string(forKey: self.bookIdKey)
         let restoredBookTitle = UserDefaults.standard.string(forKey: self.bookTitleKey)
@@ -399,7 +456,7 @@ extension PTTManager: PTChannelRestorationDelegate {
                 self.currentBookId = bookId
                 self.currentBookTitle = restoredBookTitle
                 self.activeChannelUUID = channelUUID
-                pttLogger.info("Restored book context: \(restoredBookTitle ?? "unknown")")
+                pttLogger.info("✅ Restored book context: \(restoredBookTitle ?? "unknown")")
             }
         }
         
@@ -410,7 +467,10 @@ extension PTTManager: PTChannelRestorationDelegate {
         let config = UIImage.SymbolConfiguration(pointSize: 30, weight: .medium)
         let image = UIImage(systemName: "book.fill", withConfiguration: config) ?? UIImage()
         
-        return PTChannelDescriptor(name: restoredBookTitle ?? "BookTalk", image: image)
+        let title = restoredBookTitle ?? "BookTalk"
+        pttLogger.info("📖 Creating channel descriptor for: \(title)")
+        
+        return PTChannelDescriptor(name: title, image: image)
     }
 }
 #endif
