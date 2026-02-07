@@ -47,7 +47,6 @@ BookTalk includes Home Screen and Lock Screen widgets for quick audio capture. T
 <p>
   <img src="https://github.com/user-attachments/assets/cab33b93-a72e-4191-bd38-123d5910fc5b" width="200" />
   <img src="https://github.com/user-attachments/assets/ff8f325b-4c02-4be3-b15a-2e144c237a41" width="200" />
-  <img src="https://github.com/user-attachments/assets/d81ba0ab-076e-45b3-a1ff-8982af48a4db" width="200" />
   <img src="https://github.com/user-attachments/assets/49431e73-f320-4015-9705-b31d42add1b9" width="200" />
   <img src="https://github.com/user-attachments/assets/2e80ab37-5011-4864-9e13-cc192a5ba90b" width="200" />
   <img src="https://github.com/user-attachments/assets/0a54b387-e216-4740-b52c-6cc56c2cbc53" width="200" />
