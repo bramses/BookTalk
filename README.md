@@ -1,6 +1,6 @@
 # BookTalk
 
-A reading companion app for iOS that lets you capture thoughts, quotes, and insights as you read — using your voice, camera, or keyboard.
+A reading companion app for iOS that lets you capture thoughts, quotes, and insights as you read — using your voice, camera, or keyboard!!
 
 [![Download on App Store](https://github.com/user-attachments/assets/b2afcb7c-c695-49de-b191-489c38a9f9d6)](https://apps.apple.com/us/app/booktalks/id6758533463)
 
