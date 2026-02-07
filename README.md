@@ -4,13 +4,11 @@ A reading companion app for iOS that lets you capture thoughts, quotes, and insi
 
 [![Download on App Store](https://github.com/user-attachments/assets/b2afcb7c-c695-49de-b191-489c38a9f9d6)](https://apps.apple.com/us/app/booktalks/id6758533463)
 
-    
-
 ## Features
 
 ### Voice Annotations
-- **Push to Talk** - Record hands-free from Lock Screen, Dynamic Island, or Control Center
-- **In-app recording** - Hold the microphone button to record
+- **Widgets (Home + Lock Screen)** - Launch Quick Record from the widget
+- **In-app recording** - Record audio annotations inside any book
 - **Automatic transcription** - On-device speech recognition, completely private
 
 ### Image & Video Annotations
@@ -33,6 +31,10 @@ A reading companion app for iOS that lets you capture thoughts, quotes, and insi
 - Full-text search with highlighted matches
 - Spotlight integration for system-wide search
 
+## Widgets
+
+BookTalk includes Home Screen and Lock Screen widgets for quick audio capture. Tap the widget to open Quick Record, then choose the book while you record. Recordings are saved to the selected book and transcribed on-device.
+
 ## Screenshots
 
 <p float="left">
@@ -51,9 +53,6 @@ A reading companion app for iOS that lets you capture thoughts, quotes, and insi
   <img src="https://github.com/user-attachments/assets/0a54b387-e216-4740-b52c-6cc56c2cbc53" width="200" />
   <img src="https://github.com/user-attachments/assets/9510ad77-c740-4427-a709-c0afc0850df4" width="200" />
 </p>
-
-
-
 
 ## Requirements
 
@@ -76,8 +75,6 @@ open BookTalk.xcodeproj
 
 3. Build and run on simulator or device
 
-**Note:** Push to Talk requires a physical device and proper entitlements.
-
 ## Tech Stack
 
 - **SwiftUI** - UI framework
@@ -85,8 +82,8 @@ open BookTalk.xcodeproj
 - **AVFoundation** - Audio recording and playback
 - **Speech** - On-device transcription
 - **Vision** - ISBN barcode scanning
-- **PushToTalk** - Hands-free recording from system UI
 - **Core Spotlight** - System search integration
+- **WidgetKit** - Home + Lock Screen widgets
 
 ## Architecture
 
@@ -101,7 +98,6 @@ BookTalk/
 ├── Services/
 │   ├── AudioRecorder.swift    # In-app recording
 │   ├── AudioPlayer.swift      # Playback
-│   ├── PTTManager.swift       # Push to Talk
 │   ├── TranscriptionService.swift
 │   ├── SpotlightService.swift
 │   ├── BarcodeScannerService.swift
@@ -111,6 +107,7 @@ BookTalk/
     ├── Book/                  # Book detail, annotations
     ├── Feed/                  # All annotations feed
     ├── Search/                # Search interface
+    ├── Recording/             # Quick Record flow
     └── Common/                # Shared components
 ```
 
@@ -133,7 +130,6 @@ See the full [Privacy Policy](https://www.bramadams.dev/booktalk-privacy-policy/
 | Camera | Scanning ISBN barcodes, taking photos |
 | Photo Library | Adding existing photos/videos |
 | Speech Recognition | On-device transcription |
-| Push to Talk | Hands-free recording from system UI |
 
 ## Contributing
 
